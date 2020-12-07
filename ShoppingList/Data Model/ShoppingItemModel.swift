@@ -7,7 +7,7 @@
 
 import Foundation
 
-class ShoppingItemModel {
+class ShoppingItemModel : Codable{
     
     var title: String = ""
     var checked: Bool = false

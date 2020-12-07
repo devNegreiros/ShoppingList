@@ -11,11 +11,12 @@ class ShoppingListViewController: UITableViewController {
 
     let keyList = "ShoopinpArray"
     var itemArray = [ShoppingItemModel]()
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
-    let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         
         //"Frios", "Bebidas", "Carnes", "Matinal", "Feira", "Temperos"
         let newItem = ShoppingItemModel()
@@ -30,9 +31,7 @@ class ShoppingListViewController: UITableViewController {
         newItem3.title = "Carnes"
         itemArray.append(newItem3)
         
-        if let items = defaults.array(forKey: keyList) as? [ShoppingItemModel]{
-            itemArray = items
-        }
+        loadItems()
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -56,7 +55,7 @@ class ShoppingListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         itemArray[indexPath.row].checked = !itemArray[indexPath.row].checked
-        tableView.reloadData()
+        saveItems()
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -73,8 +72,7 @@ class ShoppingListViewController: UITableViewController {
                 let addItem = ShoppingItemModel()
                 addItem.title = textDesc
                 self.itemArray.append(addItem)
-                self.defaults.set(self.itemArray, forKey: self.keyList)
-                self.tableView.reloadData()
+                self.saveItems()
             }
         }
         
@@ -86,5 +84,30 @@ class ShoppingListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    //MARK - Model Manipulation Methods
+    
+    func saveItems(){
+        let encoder = PropertyListEncoder()
+        
+        do{
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch{
+            print("Error enconding item array, \(error)")
+        }
+        tableView.reloadData()
+    }
+    
+    func loadItems(){
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do {
+                
+                itemArray = try decoder.decode([ShoppingItemModel].self, from: data)
+            } catch {
+                print("Error decoding item array, \(error)")
+            }
+        }
+    }
 }
 
